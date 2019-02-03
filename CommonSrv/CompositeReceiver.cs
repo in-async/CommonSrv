@@ -16,8 +16,13 @@ namespace CommonSrv {
         /// </summary>
         /// <param name="receivers">リクエストを処理する <see cref="IReceiver{TRequest}"/> のコレクション。</param>
         /// <exception cref="ArgumentNullException"><paramref name="receivers"/> is <c>null</c>。</exception>
+        /// <exception cref="ArgumentException"><paramref name="receivers"/> の要素の一つが <c>null</c>。</exception>
         public CompositeReceiver(IEnumerable<IReceiver<TRequest>> receivers) {
-            Receivers = receivers?.ToArray() ?? throw new ArgumentNullException(nameof(receivers));
+            if (receivers == null) { throw new ArgumentNullException(nameof(receivers)); }
+            var receiverArray = receivers.ToArray();
+            if (receiverArray.Any(x => x == null)) { throw new ArgumentException($"{nameof(receivers)} contains null"); }
+
+            Receivers = receiverArray;
         }
 
         /// <summary>

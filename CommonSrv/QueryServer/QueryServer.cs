@@ -14,7 +14,7 @@ namespace CommonSrv {
         private readonly IQueryFilter<TSource, TRequest> _filter;
 
         /// <summary>
-        /// <see cref="QueryServer{TRequest, TItem, TResponse}"/> クラスの新しいインスタンスを初期化します。
+        /// <see cref="QueryServer{TRequest, TSource}"/> クラスの新しいインスタンスを初期化します。
         /// </summary>
         /// <param name="repository"><typeparamref name="TSource"/> のコレクションを返すリポジトリ。</param>
         /// <param name="filter">リポジトリが返す <typeparamref name="TSource"/> のコレクションに対して適用されるフィルター。</param>
@@ -24,6 +24,12 @@ namespace CommonSrv {
             _filter = filter ?? throw new ArgumentNullException(nameof(filter));
         }
 
+        /// <summary>
+        /// リクエストを処理します。
+        /// </summary>
+        /// <param name="request">リクエスト。</param>
+        /// <returns>生成されたレスポンス。</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public Task<IEnumerable<TSource>> ExecuteAsync(TRequest request) {
             if (request == null) { throw new ArgumentNullException(nameof(request)); }
 

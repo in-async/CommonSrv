@@ -21,7 +21,7 @@ namespace CommonSrv {
         public CompositeQueryFilter(IEnumerable<IQueryFilter<TSource, TCondition>> filters) {
             if (filters == null) { throw new ArgumentNullException(nameof(filters)); }
             var filterArray = filters.ToArray();
-            if (filterArray.Any(x => x == null)) { throw new ArgumentException($"{nameof(Filters)} contains null"); }
+            if (filterArray.Any(x => x == null)) { throw new ArgumentException($"{nameof(filters)} contains null"); }
 
             Filters = filterArray;
         }
@@ -31,6 +31,12 @@ namespace CommonSrv {
         /// </summary>
         public IReadOnlyList<IQueryFilter<TSource, TCondition>> Filters { get; }
 
+        /// <summary>
+        /// <typeparamref name="TSource"/> のシーケンスをフィルター処理します。
+        /// </summary>
+        /// <param name="source">フィルター処理の対象となる <typeparamref name="TSource"/> のシーケンス。常に非 <c>null</c>。</param>
+        /// <param name="condition">フィルター処理の手がかりとなる値。常に非 <c>null</c>。</param>
+        /// <returns>フィルター処理された <typeparamref name="TSource"/> のシーケンス。常に非 <c>null</c>。</returns>
         public virtual async Task<IEnumerable<TSource>> ExecuteAsync(IEnumerable<TSource> source, TCondition condition) {
             foreach (var filter in Filters) {
                 source = await filter.ExecuteAsync(source, condition);
