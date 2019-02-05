@@ -25,10 +25,10 @@ namespace CommonSrv {
         }
 
         /// <summary>
-        /// リクエストを処理します。
+        /// リクエストに基づいて <typeparamref name="TSource"/> のシーケンスを返します。
         /// </summary>
         /// <param name="request">リクエスト。</param>
-        /// <returns>生成されたレスポンス。</returns>
+        /// <returns>取得された <typeparamref name="TSource"/> のコレクション。常に非 <c>null</c>。各要素も常に非 <c>null</c>。</returns>
         /// <exception cref="ArgumentNullException"><paramref name="request"/> is <c>null</c>.</exception>
         public Task<IEnumerable<TSource>> ExecuteAsync(TRequest request) {
             if (request == null) { throw new ArgumentNullException(nameof(request)); }
