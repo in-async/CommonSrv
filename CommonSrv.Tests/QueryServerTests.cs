@@ -18,26 +18,31 @@ namespace CommonSrv.Tests {
                     .Verify((actual, desc) => { }, item.expectedExceptionType);
             }
 
-            (int testNumber, SpyRepository repository, SpyFilter filter, Type expectedExceptionType)[] TestCases() => new[]{
-                ( 0, null               , new SpyFilter(), (Type)typeof(ArgumentNullException)),
-                ( 1, new SpyRepository(), null           , (Type)typeof(ArgumentNullException)),
-                (10, new SpyRepository(), new SpyFilter(), (Type)null),
+            (int testNumber, SpyRepository repository, SequenceFilterFunc<DummySource, DummyRequest> filter, Type expectedExceptionType)[] TestCases() => new[]{
+                ( 0, null               , Filter(), (Type)typeof(ArgumentNullException)),
+                ( 1, new SpyRepository(), null    , (Type)typeof(ArgumentNullException)),
+                (10, new SpyRepository(), Filter(), (Type)null),
             };
+
+            SequenceFilterFunc<DummySource, DummyRequest> Filter() => (src, ctx) => Task.FromResult(src);
         }
 
         [TestMethod]
         public void ExecuteAsync() {
             foreach (var item in TestCases()) {
                 var repository = new SpyRepository();
-                var filter = new SpyFilter();
-                var server = new QueryServer<DummyRequest, DummySource>(repository, filter);
+                DummyRequest actualContext = null;
+                var server = new QueryServer<DummyRequest, DummySource>(repository, (source, context) => {
+                    actualContext = context;
+                    return Task.FromResult(source);
+                });
 
                 new TestCaseRunner($"No.{item.testNumber}")
                     .Run(() => server.ExecuteAsync(item.request))
                     .Verify((actual, desc) => {
-                        Assert.AreEqual(item.request, repository.Condition, desc);
-                        Assert.AreEqual(item.request, filter.Condition, desc);
-                        CollectionAssert.AreEqual(repository.Sources, actual.GetAwaiter().GetResult().ToArray(), desc);
+                        Assert.AreEqual(item.request, repository.ActualCondition, $"{desc}: リポジトリに渡されたコンディションがリクエストと一致しません。");
+                        Assert.AreEqual(item.request, actualContext, $"{desc}: フィルターに渡されたコンテキストがリクエストと一致しません。");
+                        Assert.AreEqual(repository.ActualSources, actual, $"{desc}: リポジトリが返したシーケンスが出力に素通しされていません。");
                     }, item.expectedExceptionType);
             }
 
@@ -54,23 +59,14 @@ namespace CommonSrv.Tests {
         private class DummySource { }
 
         private class SpyRepository : IQueryRepository<DummyRequest, DummySource> {
-            public DummyRequest Condition { get; private set; }
-            public DummySource[] Sources { get; private set; }
+            public DummyRequest ActualCondition { get; private set; }
+            public IReadOnlyList<DummySource> ActualSources { get; private set; }
 
             public Task<IReadOnlyList<DummySource>> QueryAsync(DummyRequest condition) {
-                Condition = condition;
-                Sources = Enumerable.Range(0, 10).Select(i => new DummySource()).ToArray();
+                ActualCondition = condition;
+                ActualSources = Enumerable.Range(0, 10).Select(i => new DummySource()).ToArray();
 
-                return Task.FromResult((IReadOnlyList<DummySource>)Sources);
-            }
-        }
-
-        private class SpyFilter : IQueryFilter<DummySource, DummyRequest> {
-            public DummyRequest Condition { get; private set; }
-
-            public Task<IEnumerable<DummySource>> ExecuteAsync(IEnumerable<DummySource> source, DummyRequest condition) {
-                Condition = condition;
-                return Task.FromResult(source);
+                return Task.FromResult(ActualSources);
             }
         }
 

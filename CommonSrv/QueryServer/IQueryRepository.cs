@@ -14,8 +14,8 @@ namespace CommonSrv {
         /// <summary>
         /// 条件に基づいて <typeparamref name="TSource"/> のコレクションを返します。
         /// </summary>
-        /// <param name="condition"><typeparamref name="TSource"/> の検索条件。常に非 <c>null</c>。</param>
+        /// <param name="context"><typeparamref name="TSource"/> の検索条件。常に非 <c>null</c>。</param>
         /// <returns>条件を満たす <typeparamref name="TSource"/> のコレクション。常に非 <c>null</c>。各要素も常に非 <c>null</c>。</returns>
-        Task<IReadOnlyList<TSource>> QueryAsync(TCondition condition);
+        Task<IReadOnlyList<TSource>> QueryAsync(TCondition context);
     }
 }
